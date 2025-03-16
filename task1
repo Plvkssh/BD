@@ -1,0 +1,6 @@
+SELECT maker 
+FROM motorcycle 
+left join Vehicle on Vehicle.model = motorcycle.model 
+WHERE motorcycle.type = 'sport' 
+and horsepower > 150 
+and price < 20000.00;
