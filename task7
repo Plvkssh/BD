@@ -1,0 +1,44 @@
+WITH LowAveragePositionCars AS (
+    SELECT 
+        c.name AS car_name,
+        c.class,
+        AVG(r.position) AS average_position,
+        COUNT(r.race) AS race_count,
+        cl.country
+    FROM 
+        Results r
+    JOIN 
+        Cars c ON r.car = c.name
+    JOIN 
+        Classes cl ON c.class = cl.class
+    GROUP BY 
+        c.name, c.class, cl.country
+    HAVING 
+        AVG(r.position) > 3.0
+),
+ClassCounts AS (
+    SELECT 
+        class,
+        COUNT(*) AS low_position_count,
+        COUNT(r.race) AS total_races
+    FROM 
+        Results r
+    JOIN 
+        Cars c ON r.car = c.name
+    GROUP BY 
+        c.class
+)
+
+SELECT 
+    l.car_name,
+    l.class,
+    l.average_position,
+    l.race_count,
+    l.country,
+    cc.total_races
+FROM 
+    LowAveragePositionCars l
+JOIN 
+    ClassCounts cc ON l.class = cc.class
+ORDER BY 
+    cc.low_position_count DESC;
