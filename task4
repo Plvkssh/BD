@@ -1,0 +1,33 @@
+WITH AveragePositions AS (
+    SELECT 
+        c.class,
+        r.car,
+        AVG(r.position) AS avg_position,
+        COUNT(r.race) AS race_count,
+        cl.country
+    FROM 
+        Results r
+    JOIN 
+        Cars c ON r.car = c.name
+    JOIN 
+        Classes cl ON c.class = cl.class
+    GROUP BY 
+        c.class, r.car, cl.country
+),
+MinAvgPosition AS (
+    SELECT 
+        *,
+        ROW_NUMBER() OVER (ORDER BY avg_position, car) AS rank
+    FROM 
+        AveragePositions
+)
+SELECT 
+    class,
+    car,
+    avg_position,
+    race_count,
+    country
+FROM 
+    MinAvgPosition
+WHERE 
+    rank = 1;
