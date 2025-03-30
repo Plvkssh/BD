@@ -1,0 +1,54 @@
+WITH RECURSIVE EmployeeHierarchy AS (
+    SELECT 
+        EmployeeID, 
+        Name, 
+        ManagerID, 
+        DepartmentID, 
+        RoleID 
+    FROM 
+        Employees 
+    WHERE 
+        EmployeeID = 1
+    
+    UNION ALL
+    
+    SELECT 
+        e.EmployeeID, 
+        e.Name, 
+        e.ManagerID, 
+        e.DepartmentID, 
+        e.RoleID 
+    FROM 
+        Employees e
+    JOIN 
+        EmployeeHierarchy eh ON e.ManagerID = eh.EmployeeID
+)
+
+SELECT 
+    eh.EmployeeID,
+    eh.Name,
+    eh.ManagerID,
+    d.DepartmentName,
+    r.RoleName,
+    COALESCE(GROUP_CONCAT(DISTINCT p.ProjectName), NULL) AS Projects,
+    COALESCE(GROUP_CONCAT(DISTINCT t.TaskName), NULL) AS Tasks,
+    COUNT(DISTINCT ta.TaskID) AS TotalTasks,
+    COUNT(DISTINCT sub.EmployeeID) AS DirectReportsCount
+FROM 
+    EmployeeHierarchy eh
+LEFT JOIN 
+    Departments d ON eh.DepartmentID = d.DepartmentID
+LEFT JOIN 
+    Roles r ON eh.RoleID = r.RoleID
+LEFT JOIN 
+    ProjectAssignments pa ON eh.EmployeeID = pa.EmployeeID
+LEFT JOIN 
+    Projects p ON pa.ProjectID = p.ProjectID
+LEFT JOIN 
+    TaskAssignments ta ON eh.EmployeeID = ta.AssignedTo
+LEFT JOIN 
+    Employees sub ON sub.ManagerID = eh.EmployeeID
+GROUP BY 
+    eh.EmployeeID
+ORDER BY 
+    eh.Name;
